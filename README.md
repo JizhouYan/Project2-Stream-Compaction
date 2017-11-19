@@ -20,13 +20,13 @@ CUDA Stream Compaction
 
 * Roughly optimize the block sizes of each of your implementations for minimal run time on your GPU.
 
-	![Optimize the block size](img/1.png)
+	![Optimize the block size](img/T1.png)
 
 	From above chart, for each implementation, the optimized block_size is around 128. Small block size (less than 16) will cause serious performance penalties. When block size is higher than 128, performance cannot continue obtaining any improvement whith the increase of block size, and performance will drop off for large block size.
 
 * Compare all of these GPU Scan implementations (Naive, Work-Efficient, and Thrust) to the serial CPU version of Scan. Plot a graph of the comparison (with array size on the independent axis).
 
-	![Performance Comparison of Scan](img/3.png)
+	![Performance Comparison of Scan](img/T2.png)
 
 	An unexpected thing about the above images are thrust(the blue line in the middle of the image) taking much more time when it's first time running. I guess that's because the implementation of THRUST, it might require some initialization operations during the first time running. And once after that, the thrust execution time become much faster than my implementation.
 
@@ -36,13 +36,13 @@ CUDA Stream Compaction
 
 	Non-power-of-two array size will introduce some decrease of performance for GPU implementation, but very slightly.
 
-	![Performance Comparison for Compaction](img/4.png)
+	![Performance Comparison for Compaction](img/T3.png)
 
 	Non-power-of-tow array size have trivial influence on both gpu and cpu.
 
 	GPU implementation is slower than cpu without scan implementation, but much faster than cpu implementation with scan.
 
-	![Performance Comparison for Radix Sort and Std::sort](img/5.png)
+	![Performance Comparison for Radix Sort and Std::sort](img/T4.png)
 
 	For extra, I implementated Radix Sort, compared with std::sort, radix sort is generally slower than std::sort.
 
