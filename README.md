@@ -50,16 +50,7 @@ CUDA Stream Compaction
 
 * Can you find the performance bottlenecks? Is it memory I/O? Computation? Is it different for each implementation?
 
-	* I think the bottleneck is memory I/O. Without using shared-memory, it's very inefficient for adjacent threads accessing memory with huge physical distance. Especially when this project is all about memory I/O. Even using work-efficient scan implementation, GPU still cannot beat CPU implemetation. For GPU scan and compaction implementations, array size of power of two can obtain better performance than non-power-of-two array size. On CPU, non-power-of-tow doesn't seem to have huge influence. Following image is a profiling image captured by NSight:
-	![profiling](img/5.png)
-	From above image, we can see that `cudaMemcpy` and `cudaMalloc` almost took half of the entire execution time. For this type of memory I/O-intensive computation tasks, we need some better solution about CUDA to improve the efficience of memory IO.
-
-	* optimized block size of each implementation, refer to **Find an Optimized BlockSize for Each Implementation**.
-	* comparison of different implementations of scan and compaction, refer to **Performance Analysis**.
-	* output of test-program, refer to **Example Output**.
-
-## Build
-Modified `CMakeLists.txt` for adding new files `radixsort.h` and `radixsort.cu`. 
+	I think the bottleneck is memory I/O. Without using shared-memory, it's very inefficient for adjacent threads accessing memory with huge physical distance. Especially when this project is all about memory I/O. Even using work-efficient scan implementation, GPU still cannot beat CPU implemetation. For GPU scan and compaction implementations, array size of power of two can obtain better performance than non-power-of-two array size. On CPU, non-power-of-tow doesn't seem to have huge influence. For this type of memory I/O-intensive computation tasks, we need some better solution about CUDA to improve the efficience of memory IO.
 
 ## Example Output
 
