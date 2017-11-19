@@ -62,93 +62,93 @@ CUDA Stream Compaction
 Modified `CMakeLists.txt` for adding new files `radixsort.h` and `radixsort.cu`. 
 
 ## Example Output
-Copy and paste from one execution:
 
 ```
 
 **********************
 **  TEST PARAMETERS **
 **********************
-        Array size = 1048576
+        Array size = 16777216
         BlockSize  = 128
 
 
 ****************
 ** SCAN TESTS **
 ****************
-    [   0   1  40  32  27  35  15  21  46  15   4  37  32 ...  43   0 ]
+    [  38  19  38  37   5  47  15  35   0  12   3   0  42 ...  42   0 ]
 ==== cpu scan, power-of-two ====
-<==TIMER==> Scan::CPU =  4.470 ms <==TIMER==>
-    [   0   0   1  41  73 100 135 150 171 217 232 236 273 ... 25689112 25689155 ]
+<==TIMER==> Scan::CPU =  38.904 ms <==TIMER==>
+    [   0  38  57  95 132 137 184 199 234 234 246 249 249 ... 411089014 411089056 ]
 
 ==== cpu scan, non-power-of-two ====
-<==TIMER==> Scan::CPU =  4.626 ms <==TIMER==>
-    [   0   0   1  41  73 100 135 150 171 217 232 236 273 ... 25689004 25689051 ]
+<==TIMER==> Scan::CPU =  39.604 ms <==TIMER==>
+    [   0  38  57  95 132 137 184 199 234 234 246 249 249 ... 411088950 411088974 ]
     passed
 
 ==== naive scan, power-of-two ====
-<==TIMER==> Scan::GPU::Naive =  0.692 ms <==TIMER==>
+<==TIMER==> Scan::GPU::Naive =  98.854 ms <==TIMER==>
     passed
 
 ==== naive scan, non-power-of-two ====
-<==TIMER==> Scan::GPU::Naive =  0.682 ms <==TIMER==>
+<==TIMER==> Scan::GPU::Naive =  98.863 ms <==TIMER==>
     passed
 
 ==== work-efficient scan, power-of-two ====
-<==TIMER==> Scan::GPU::Efficient =  0.570 ms <==TIMER==>
+<==TIMER==> Scan::GPU::Efficient =  39.102 ms <==TIMER==>
     passed
 
 ==== work-efficient scan, non-power-of-two ====
-<==TIMER==> Scan::GPU::Efficient =  0.465 ms <==TIMER==>
+<==TIMER==> Scan::GPU::Efficient =  39.471 ms <==TIMER==>
     passed
 
 ==== thrust scan, power-of-two ====
-<==TIMER==> Scan::Thrust =  0.298 ms <==TIMER==>
+<==TIMER==> Scan::Thrust =  12.047 ms <==TIMER==>
     passed
 
 ==== thrust scan, non-power-of-two ====
-<==TIMER==> Scan::Thrust =  0.295 ms <==TIMER==>
+<==TIMER==> Scan::Thrust =  8.977 ms <==TIMER==>
     passed
 
 
 *****************************
 ** STREAM COMPACTION TESTS **
 *****************************
-    [   2   1   2   2   3   3   1   3   2   1   0   1   2 ...   3   0 ]
+    [   2   3   2   1   3   1   1   1   2   0   1   0   2 ...   0   0 ]
 ==== cpu compact without scan, power-of-two ====
-<==TIMER==> Compact::CPU::WithoutScan =  2.142 ms <==TIMER==>
-    [   2   1   2   2   3   3   1   3   2   1   1   2   2 ...   1   3 ]
+<==TIMER==> Compact::CPU::WithoutScan =  43.708 ms <==TIMER==>
+    [   2   3   2   1   3   1   1   1   2   1   2   1   1 ...   2   2 ]
     passed
 
 ==== cpu compact without scan, non-power-of-two ====
-<==TIMER==> Compact::CPU::WithoutScan =  2.157 ms <==TIMER==>
-    [   2   1   2   2   3   3   1   3   2   1   1   2   2 ...   3   2 ]
+<==TIMER==> Compact::CPU::WithoutScan =  43.631 ms <==TIMER==>
+    [   2   3   2   1   3   1   1   1   2   1   2   1   1 ...   2   2 ]
     passed
 
 ==== cpu compact with scan ====
-<==TIMER==> Compact::CPU::WithScan =  9.619 ms <==TIMER==>
-    [   2   1   2   2   3   3   1   3   2   1   1   2   2 ...   1   3 ]
+<==TIMER==> Compact::CPU::WithScan =  168.657 ms <==TIMER==>
+    [   2   3   2   1   3   1   1   1   2   1   2   1   1 ...   2   2 ]
     passed
 
 ==== work-efficient compact, power-of-two ====
-<==TIMER==> Compact::GPU::Efficient =  0.609 ms <==TIMER==>
+<==TIMER==> Compact::GPU::Efficient =  51.127 ms <==TIMER==>
     passed
 
 ==== work-efficient compact, non-power-of-two ====
-<==TIMER==> Compact::GPU::Efficient =  0.829 ms <==TIMER==>
+<==TIMER==> Compact::GPU::Efficient =  51.203 ms <==TIMER==>
     passed
 
 
 *****************************
 ****** RADIX SORT TESTS *****
 *****************************
-    [ 17550 26101 5590 26082 17127 16335 23265 11071 4246 27565 19904 20337 3282 ... 27543 10273 ]
+    [  38 7719 21238 2437 8855 11797 8365 32285 10450 30612 5853 28100 1142 ... 7792 2304 ]
 ==== std::sort ====
-<==TIMER==> CPU::std::sort =  56.527 ms <==TIMER==>
+<==TIMER==> CPU::std::sort =  1082.067 ms <==TIMER==>
     [   0   0   0   0   0   0   0   0   0   0   0   0   0 ... 32767 32767 ]
 
 ==== GPU::RadixSort ====
-<==TIMER==> GPU::Radix Sort =  18.000 ms <==TIMER==>
+<==TIMER==> GPU::Radix Sort =  1502.197 ms <==TIMER==>
     passed
 
+Press any key to continue . . .
 ```
