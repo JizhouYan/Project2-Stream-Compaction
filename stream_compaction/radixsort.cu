@@ -9,8 +9,12 @@ namespace RadixSort {
 	
 const int BlockSize = StreamCompaction::Common::BlockSize;
 
-static StreamCompaction::Common::Timer timer;
-
+using StreamCompaction::Common::PerformanceTimer;
+PerformanceTimer& timer()
+{
+	static PerformanceTimer timer;
+	return timer;
+}
 __global__ void kernComputeBArray(int n, int k, int *out, int *in)
 {
 	int index = threadIdx.x + blockIdx.x * blockDim.x;
@@ -90,7 +94,7 @@ void RadixSort(int n, int* data, int maxValue)
 	// copy input data to device pointer
 	cudaMemcpy(dev_input, data, n*sizeof(int), cudaMemcpyHostToDevice);
 
-	timer.startGpuTimer();
+	timer().startGpuTimer();
 
 	dim3 gridSize((n + BlockSize - 1) / BlockSize);
 
@@ -126,8 +130,7 @@ void RadixSort(int n, int* data, int maxValue)
 
 	}
 	
-	timer.stopGpuTimer();
-	timer.printTimerInfo("GPU::Radix Sort = ",timer.getGpuElapsedTime());
+	timer().endGpuTimer();
 
 	cudaMemcpy(data, dev_input, n*sizeof(int), cudaMemcpyDeviceToHost);
 

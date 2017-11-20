@@ -55,91 +55,70 @@ CUDA Stream Compaction
 ## Example Output
 
 ```
-
-**********************
-**  TEST PARAMETERS **
-**********************
-        Array size = 16777216
-        BlockSize  = 128
-
-
 ****************
 ** SCAN TESTS **
 ****************
-    [  38  19  38  37   5  47  15  35   0  12   3   0  42 ...  42   0 ]
+    [   5  42  47  27  16   0   5  26   2  32  37  11  31 ...  25   0 ]
 ==== cpu scan, power-of-two ====
-<==TIMER==> Scan::CPU =  38.904 ms <==TIMER==>
-    [   0  38  57  95 132 137 184 199 234 234 246 249 249 ... 411089014 411089056 ]
-
+   elapsed time: 68.0948ms    (std::chrono Measured)
+    [   0   5  47  94 121 137 137 142 168 170 202 239 250 ... 410888135 410888160 ]
 ==== cpu scan, non-power-of-two ====
-<==TIMER==> Scan::CPU =  39.604 ms <==TIMER==>
-    [   0  38  57  95 132 137 184 199 234 234 246 249 249 ... 411088950 411088974 ]
+   elapsed time: 32.0523ms    (std::chrono Measured)
+    [   0   5  47  94 121 137 137 142 168 170 202 239 250 ... 410888062 410888084 ]
     passed
-
 ==== naive scan, power-of-two ====
-<==TIMER==> Scan::GPU::Naive =  98.854 ms <==TIMER==>
+   elapsed time: 13.1426ms    (CUDA Measured)
     passed
-
 ==== naive scan, non-power-of-two ====
-<==TIMER==> Scan::GPU::Naive =  98.863 ms <==TIMER==>
+   elapsed time: 13.0404ms    (CUDA Measured)
     passed
-
 ==== work-efficient scan, power-of-two ====
-<==TIMER==> Scan::GPU::Efficient =  39.102 ms <==TIMER==>
+   elapsed time: 6.33571ms    (CUDA Measured)
     passed
-
 ==== work-efficient scan, non-power-of-two ====
-<==TIMER==> Scan::GPU::Efficient =  39.471 ms <==TIMER==>
+   elapsed time: 6.27824ms    (CUDA Measured)
     passed
-
 ==== thrust scan, power-of-two ====
-<==TIMER==> Scan::Thrust =  12.047 ms <==TIMER==>
+   elapsed time: 1.22403ms    (CUDA Measured)
     passed
-
 ==== thrust scan, non-power-of-two ====
-<==TIMER==> Scan::Thrust =  8.977 ms <==TIMER==>
+   elapsed time: 1.12288ms    (CUDA Measured)
     passed
-
 
 *****************************
 ** STREAM COMPACTION TESTS **
 *****************************
-    [   2   3   2   1   3   1   1   1   2   0   1   0   2 ...   0   0 ]
+    [   1   3   1   3   0   0   3   2   2   2   3   3   0 ...   0   0 ]
 ==== cpu compact without scan, power-of-two ====
-<==TIMER==> Compact::CPU::WithoutScan =  43.708 ms <==TIMER==>
-    [   2   3   2   1   3   1   1   1   2   1   2   1   1 ...   2   2 ]
+   elapsed time: 36.9479ms    (std::chrono Measured)
+    [   1   3   1   3   3   2   2   2   3   3   1   1   3 ...   3   3 ]
     passed
-
 ==== cpu compact without scan, non-power-of-two ====
-<==TIMER==> Compact::CPU::WithoutScan =  43.631 ms <==TIMER==>
-    [   2   3   2   1   3   1   1   1   2   1   2   1   1 ...   2   2 ]
+   elapsed time: 38.7113ms    (std::chrono Measured)
+    [   1   3   1   3   3   2   2   2   3   3   1   1   3 ...   2   3 ]
     passed
-
 ==== cpu compact with scan ====
-<==TIMER==> Compact::CPU::WithScan =  168.657 ms <==TIMER==>
-    [   2   3   2   1   3   1   1   1   2   1   2   1   1 ...   2   2 ]
+   elapsed time: 148.285ms    (std::chrono Measured)
+    [   1   3   1   3   3   2   2   2   3   3   1   1   3 ...   3   3 ]
     passed
-
 ==== work-efficient compact, power-of-two ====
-<==TIMER==> Compact::GPU::Efficient =  51.127 ms <==TIMER==>
+   elapsed time: 8.14077ms    (CUDA Measured)
     passed
-
 ==== work-efficient compact, non-power-of-two ====
-<==TIMER==> Compact::GPU::Efficient =  51.203 ms <==TIMER==>
+   elapsed time: 8.2161ms    (CUDA Measured)
     passed
-
 
 *****************************
 ****** RADIX SORT TESTS *****
 *****************************
-    [  38 7719 21238 2437 8855 11797 8365 32285 10450 30612 5853 28100 1142 ... 7792 2304 ]
+    [ 16812 29839 8257 3018 2627 25803 18380 10671 31557 6386 24591 25599 24391 ... 30548 16146 ]
 ==== std::sort ====
-<==TIMER==> CPU::std::sort =  1082.067 ms <==TIMER==>
     [   0   0   0   0   0   0   0   0   0   0   0   0   0 ... 32767 32767 ]
+   elapsed time: 8.2161ms    (std::chrono Measured)
 
 ==== GPU::RadixSort ====
-<==TIMER==> GPU::Radix Sort =  1502.197 ms <==TIMER==>
     passed
+   elapsed time: 8.2161ms    (CUDA Measured)
 
 Press any key to continue . . .
 ```

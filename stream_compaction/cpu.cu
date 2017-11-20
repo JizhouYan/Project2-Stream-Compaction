@@ -5,22 +5,25 @@
 namespace StreamCompaction {
 namespace CPU {
 
-	//static StreamCompaction::Common::Timer timer;
+using StreamCompaction::Common::PerformanceTimer;
+PerformanceTimer& timer()
+{
+	static PerformanceTimer timer;
+	return timer;
+}
 
 /**
  * CPU scan (prefix sum).
  */
 void scan(int n, int *odata, const int *idata) {
     
-	//timer.startCpuTimer();
+	timer().startCpuTimer();
 
 	odata[0] = 0;
 	for (int i = 1; i < n; ++i)
 		odata[i] = odata[i - 1] + idata[i - 1];
 
-	//timer.stopCpuTimer();
-	//timer.printTimerInfo("Scan::CPU = ", timer.getCpuElapsedTime());
-
+	timer().endCpuTimer();
 }
 
 /**
@@ -30,8 +33,8 @@ void scan(int n, int *odata, const int *idata) {
  */
 int compactWithoutScan(int n, int *odata, const int *idata) {
 	
-	//timer.startCpuTimer();
-
+	timer().startCpuTimer();
+	
 	int index = 0;
 	for (int i = 0; i < n; ++i)
 	{
@@ -41,9 +44,8 @@ int compactWithoutScan(int n, int *odata, const int *idata) {
 		}
 	}
 
-	//timer.stopCpuTimer();
-	//timer.printTimerInfo("StreamCompactWithoutScan::CPU = ", timer.getCpuElapsedTime());
-
+	timer().endCpuTimer();
+	
 	return index;
 }
 
@@ -57,12 +59,14 @@ int compactWithScan(int n, int *odata, const int *idata) {
 	int* inputScan = new int[n];
 	int* outputScan = new int[n];
 
-	//timer.startCpuTimer();
+	timer().startCpuTimer();
 
 	for (int i = 0; i < n; ++i)
 		inputScan[i] = (idata[i] == 0) ? 0 : 1;
 
-	scan(n, outputScan, inputScan);
+	outputScan[0] = 0;
+	for (int i = 1; i < n; ++i)
+		outputScan[i] = outputScan[i - 1] + inputScan[i - 1];
 
 	int sum = 0;
 	for (int i = 0; i < n; ++i)
@@ -74,8 +78,7 @@ int compactWithScan(int n, int *odata, const int *idata) {
 		}
 	}
 
-	//timer.stopCpuTimer();
-	//timer.printTimerInfo("StreamCompactWithScan::CPU = ",timer.getCpuElapsedTime());
+	timer().endCpuTimer();
 
 	delete[] inputScan;
 	delete[] outputScan;

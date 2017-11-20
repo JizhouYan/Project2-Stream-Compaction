@@ -8,8 +8,12 @@ namespace Naive {
 	
 const int BlockSize = StreamCompaction::Common::BlockSize;
 
-
-static StreamCompaction::Common::Timer timer;
+using StreamCompaction::Common::PerformanceTimer;
+PerformanceTimer& timer()
+{
+	static PerformanceTimer timer;
+	return timer;
+}
 
 // naive scan on GPU
 __global__ void scan(int n, int offset, int *input, int *output)
@@ -44,7 +48,7 @@ void scan(int n, int *odata, const int *idata) {
 
 	cudaMemcpy(dev_in, idata, n*sizeof(int), cudaMemcpyHostToDevice);
 
-	timer.startGpuTimer();
+	timer().startGpuTimer();
 
 	dim3 fulllBlocksPerGrid((n + BlockSize - 1)/BlockSize);
 
@@ -65,8 +69,7 @@ void scan(int n, int *odata, const int *idata) {
 	dev_in = dev_out;
 	dev_out = tmp;
 
-	timer.stopGpuTimer();
-	timer.printTimerInfo("Scan::GPU::Naive = ", timer.getGpuElapsedTime());
+	timer().endGpuTimer();
 
 	// exclusive scan
 	cudaMemcpy(odata + 1, dev_out, (n-1)*sizeof(int), cudaMemcpyDeviceToHost);

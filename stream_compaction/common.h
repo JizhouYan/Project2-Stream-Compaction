@@ -1,106 +1,135 @@
 #pragma once
 
-#include <cstdio>
-#include <cstring>
-#include <cmath>
-#include <chrono>
-#include <iostream>
-
 #include <cuda.h>
 #include <cuda_runtime.h>
 
+#include <cstdio>
+#include <cstring>
+#include <cmath>
+#include <algorithm>
+#include <chrono>
+#include <stdexcept>
 
 #define FILENAME (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 #define checkCUDAError(msg) checkCUDAErrorFn(msg, FILENAME, __LINE__)
 
 /**
- * Check for CUDA errors; print and exit if there was a problem.
- */
+* Check for CUDA errors; print and exit if there was a problem.
+*/
 void checkCUDAErrorFn(const char *msg, const char *file = NULL, int line = -1);
 
 inline int ilog2(int x) {
-    int lg = 0;
-    while (x >>= 1) {
-        ++lg;
-    }
-    return lg;
+	int lg = 0;
+	while (x >>= 1) {
+		++lg;
+	}
+	return lg;
 }
 
 inline int ilog2ceil(int x) {
-    return ilog2(x - 1) + 1;
+	return x == 1 ? 0 : ilog2(x - 1) + 1;
 }
-
 
 namespace StreamCompaction {
-namespace Common {
+	namespace Common {
 
-	const int BlockSize = 128;
+		const int BlockSize = 128;
 
-    __global__ void kernMapToBoolean(int n, int *bools, const int *idata);
+		__global__ void kernMapToBoolean(int n, int *bools, const int *idata);
 
-    __global__ void kernScatter(int n, int *odata,
-            const int *idata, const int *bools, const int *indices);
-	
-	class Timer
-	{
-	public :
-		Timer()
+		__global__ void kernScatter(int n, int *odata,
+			const int *idata, const int *bools, const int *indices);
+
+		/**
+		* This class is used for timing the performance
+		* Uncopyable and unmovable
+		*
+		* Adapted from WindyDarian(https://github.com/WindyDarian)
+		*/
+		class PerformanceTimer
 		{
-			cudaEventCreate(&gpu_timer_start);
-			cudaEventCreate(&gpu_timer_stop);
-		}
+		public:
+			PerformanceTimer()
+			{
+				cudaEventCreate(&event_start);
+				cudaEventCreate(&event_end);
+			}
 
-		void startCpuTimer()
-		{
-			cpu_timer_start = std::chrono::high_resolution_clock::now();
-		}
+			~PerformanceTimer()
+			{
+				cudaEventDestroy(event_start);
+				cudaEventDestroy(event_end);
+			}
 
-		void stopCpuTimer()
-		{
-			cpu_timer_stop = std::chrono::high_resolution_clock::now();
-		}
+			void startCpuTimer()
+			{
+				if (cpu_timer_started) { throw std::runtime_error("CPU timer already started"); }
+				cpu_timer_started = true;
 
-		double getCpuElapsedTime()
-		{
-			std::chrono::duration<double, std::milli> duration = cpu_timer_stop - cpu_timer_start;
+				time_start_cpu = std::chrono::high_resolution_clock::now();
+			}
 
-			return duration.count();
-		}
+			void endCpuTimer()
+			{
+				time_end_cpu = std::chrono::high_resolution_clock::now();
 
-		void startGpuTimer()
-		{
-			cudaEventRecord(gpu_timer_start);
-		}
+				if (!cpu_timer_started) { throw std::runtime_error("CPU timer not started"); }
 
-		void stopGpuTimer()
-		{
-			cudaEventRecord(gpu_timer_stop);
-			cudaEventSynchronize(gpu_timer_stop);
-		}
+				std::chrono::duration<double, std::milli> duro = time_end_cpu - time_start_cpu;
+				prev_elapsed_time_cpu_milliseconds =
+					static_cast<decltype(prev_elapsed_time_cpu_milliseconds)>(duro.count());
 
-		double getGpuElapsedTime()
-		{
-			float elapsedTime;
+				cpu_timer_started = false;
+			}
 
-			
-			cudaEventElapsedTime(&elapsedTime, gpu_timer_start, gpu_timer_stop);
-			return elapsedTime;
-		}
+			void startGpuTimer()
+			{
+				if (gpu_timer_started) { throw std::runtime_error("GPU timer already started"); }
+				gpu_timer_started = true;
 
-		void printTimerInfo(const char* s, double elapsedTime)
-		{
-			printf("<==TIMER==> %s %.3lf ms <==TIMER==> \n", s, elapsedTime);
-		}
+				cudaEventRecord(event_start);
+			}
 
-	private:
-		std::chrono::high_resolution_clock::time_point cpu_timer_start;
-		std::chrono::high_resolution_clock::time_point cpu_timer_stop;
+			void endGpuTimer()
+			{
+				cudaEventRecord(event_end);
+				cudaEventSynchronize(event_end);
 
-		cudaEvent_t gpu_timer_start = NULL;
-		cudaEvent_t gpu_timer_stop = NULL;
+				if (!gpu_timer_started) { throw std::runtime_error("GPU timer not started"); }
 
-	};
+				cudaEventElapsedTime(&prev_elapsed_time_gpu_milliseconds, event_start, event_end);
+				gpu_timer_started = false;
+			}
 
-	static Timer timer;
-}
+			float getCpuElapsedTimeForPreviousOperation() //noexcept //(damn I need VS 2015
+			{
+				return prev_elapsed_time_cpu_milliseconds;
+			}
+
+			float getGpuElapsedTimeForPreviousOperation() //noexcept
+			{
+				return prev_elapsed_time_gpu_milliseconds;
+			}
+
+			// remove copy and move functions
+			PerformanceTimer(const PerformanceTimer&) = delete;
+			PerformanceTimer(PerformanceTimer&&) = delete;
+			PerformanceTimer& operator=(const PerformanceTimer&) = delete;
+			PerformanceTimer& operator=(PerformanceTimer&&) = delete;
+
+		private:
+			cudaEvent_t event_start = nullptr;
+			cudaEvent_t event_end = nullptr;
+
+			using time_point_t = std::chrono::high_resolution_clock::time_point;
+			time_point_t time_start_cpu;
+			time_point_t time_end_cpu;
+
+			bool cpu_timer_started = false;
+			bool gpu_timer_started = false;
+
+			float prev_elapsed_time_cpu_milliseconds = 0.f;
+			float prev_elapsed_time_gpu_milliseconds = 0.f;
+		};
+	}
 }

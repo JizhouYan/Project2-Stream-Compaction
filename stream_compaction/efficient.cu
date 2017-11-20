@@ -8,7 +8,13 @@ namespace Efficient {
 
 const int BlockSize = StreamCompaction::Common::BlockSize;
 
-static StreamCompaction::Common::Timer timer;
+using StreamCompaction::Common::PerformanceTimer;
+PerformanceTimer& timer()
+{
+	static PerformanceTimer timer;
+	return timer;
+}
+
 
 // work - efficient parallel scan 
 // stride = 2^(d+1)
@@ -92,12 +98,11 @@ void scan(int n, int *odata, const int *idata)
 	cudaMemcpy(dev_buffer, idata, sizeof(int)*n, cudaMemcpyHostToDevice);
 
 
-	timer.startGpuTimer();
+	timer().startGpuTimer();
 
 	scan_device(bufferSize, dev_buffer);
 
-	timer.stopGpuTimer();
-	timer.printTimerInfo("Scan::GPU::Efficient = ", timer.getGpuElapsedTime());
+	timer().endGpuTimer();
 
 	cudaMemcpy(odata, dev_buffer, sizeof(int)*n, cudaMemcpyDeviceToHost);
 
@@ -135,7 +140,7 @@ int compact(int n, int *odata, const int *idata) {
 
 	cudaMemset(dev_bools, 0, bufferSize*sizeof(int));
 
-	timer.startGpuTimer();
+	timer().startGpuTimer();
 
 	// map to booleans 
 	dim3 blocks((n + BlockSize - 1) / BlockSize);
@@ -149,8 +154,7 @@ int compact(int n, int *odata, const int *idata) {
 	// scatter 
 	Common::kernScatter << <blocks, BlockSize >> >(n, dev_output, dev_input, dev_bools, dev_indices);
 
-	timer.stopGpuTimer();
-	timer.printTimerInfo("Compact::GPU::Efficient = ", timer.getGpuElapsedTime());
+	timer().endGpuTimer();
 
 	// get length
 	int len;
